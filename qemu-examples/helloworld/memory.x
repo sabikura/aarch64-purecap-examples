@@ -1,0 +1,10 @@
+MEMORY {
+    ram : ORIGIN = 0x40000000, LENGTH = 64M
+}
+
+PROVIDE(__el1_stack_size = 0x4000);
+ENTRY(_el1_entry)
+
+SECTIONS {
+    /DISCARD/ : { *(.comment) *(.note.*) *(.eh_frame) }
+}

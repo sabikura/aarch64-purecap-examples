@@ -26,7 +26,7 @@ version = "0.1.0"
 source = "git+https://github.com/sabikura/cheri-rs.git#03dd7030fcf6347301ab798c5394a9892c9f5320"
 
 [[package]]
-name = "helloworld-morello-fvp"
+name = "helloworld-morello-qemu"
 version = "0.1.0"
 dependencies = [
  "aarch64-purecap-rt",

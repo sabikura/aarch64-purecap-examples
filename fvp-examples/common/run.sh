@@ -11,8 +11,8 @@ fi
 
 FIP_BIN="$1"
 
-: "${CHERI_HOME:=$HOME/cheri}"
-FVP="$CHERI_HOME/output/morello-sdk/FVP_Morello/models/Linux64_GCC-6.4/FVP_Morello"
+: "${CRABILITY_BIN:=$HOME/.crability/bin}"
+FVP="$CRABILITY_BIN/FVP_Morello"
 
 "$FVP" \
   --data "Morello_Top.css.scp.armcortexm7ct=$DIR/firmware/scp_romfw.bin@0x0" \

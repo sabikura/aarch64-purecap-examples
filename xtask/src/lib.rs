@@ -6,50 +6,39 @@ use std::process::Command;
 pub use error::XtaskError;
 pub type Result<T> = std::result::Result<T, XtaskError>;
 
-/// Resolved absolute paths to workspace subdirectories. Computed once from
-/// CARGO_MANIFEST_DIR so commands work regardless of the caller's cwd.
+const CARGO: &str = std::env!("CARGO");
+
 pub struct Context {
-    aarch64_purecap_rt: PathBuf,
+    root: PathBuf,
     toolchain: PathBuf,
-    examples: PathBuf,
-    fvp: PathBuf,
+    fvp_examples: PathBuf,
+    common: PathBuf,
 }
 
 impl Context {
     pub fn new() -> Self {
         let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-        let parent = manifest_dir.parent().unwrap();
-        let examples = parent.join("examples");
+        let root = manifest_dir.parent().unwrap().to_path_buf();
+        let fvp_examples = root.join("fvp-examples");
 
         Self {
-            aarch64_purecap_rt: parent.join("aarch64-purecap-rt"),
-            toolchain: parent.join("toolchain"),
-            fvp: examples.join("fvp"),
-            examples,
+            toolchain: root.join("toolchain"),
+            common: fvp_examples.join("common"),
+            fvp_examples,
+            root,
         }
     }
 
-    pub fn build(&self, args: &[String]) -> Result<()> {
-        self.cargo_command("build", &self.aarch64_purecap_rt, args)
-    }
-
-    pub fn check(&self, args: &[String]) -> Result<()> {
-        self.cargo_command("check", &self.aarch64_purecap_rt, args)
-    }
-
-    /// Invokes `toolchain/cargo.sh`, the wrapper that points at the CHERI
-    /// rustc/cargo fork.
     fn cargo_command(&self, command: &str, path: &Path, args: &[String]) -> Result<()> {
-        let cargo = self.toolchain.join("cargo.sh");
         println!(
             "{} {} {}({})",
-            cargo.to_string_lossy(),
+            CARGO,
             command,
             args.join(" "),
             path.to_string_lossy(),
         );
 
-        let status = Command::new(cargo)
+        let status = Command::new(CARGO)
             .arg(command)
             .args(args)
             .current_dir(path)
@@ -63,18 +52,9 @@ impl Context {
         Ok(())
     }
 
-    pub fn build_example(&self, args: &[String]) -> Result<()> {
-        let path = self.example_path(args)?;
-        self.cargo_command("build", &path, &["--release".into()])?;
-
-        Ok(())
-    }
-
-    /// Boots the example on the FVP. The fip.bin is only rebuilt when missing
-    /// or when `--clean` is given.
     pub fn run_example(&self, args: &[String]) -> Result<()> {
         let name = self.example_name(args)?;
-        let path = self.examples.join(name);
+        let path = self.fvp_examples.join(name);
         let fip_bin = self.fip_path(name);
 
         let clean = args.iter().skip(1).any(|a| a == "--clean");
@@ -83,7 +63,7 @@ impl Context {
             self.fip_example_inner(&path, name, &pkg_name)?;
         }
 
-        let run = self.fvp.join("run.sh");
+        let run = self.common.join("run.sh");
         let status = Command::new(run).arg(&fip_bin).status()?;
         if !status.success() {
             eprintln!("run.sh failed with status {}", status);
@@ -95,7 +75,7 @@ impl Context {
 
     pub fn fip_example(&self, args: &[String]) -> Result<()> {
         let name = self.example_name(args)?;
-        let path = self.examples.join(name);
+        let path = self.fvp_examples.join(name);
         let pkg_name = read_package_name(&path.join("Cargo.toml"))?;
         let fip = self.fip_example_inner(&path, name, &pkg_name)?;
         println!("fip: {}", fip.display());
@@ -123,7 +103,7 @@ impl Context {
         }
 
         let out = self.example_output_dir(name);
-        let fip_sh = self.fvp.join("fip.sh");
+        let fip_sh = self.common.join("fip.sh");
         let status = Command::new(fip_sh).arg(&bin).arg(&out).status()?;
         if !status.success() {
             eprintln!("fip.sh failed with status {}", status);
@@ -136,13 +116,14 @@ impl Context {
     pub fn setup(&self) -> Result<()> {
         let status = Command::new("git")
             .args(["submodule", "update", "--init", "--recursive"])
+            .current_dir(&self.root)
             .status()?;
         if !status.success() {
             eprintln!("git submodule failed with status {}", status);
             return Err(XtaskError::CommandFailed);
         }
 
-        let maketfa = self.fvp.join("maketfa.sh");
+        let maketfa = self.common.join("maketfa.sh");
         let status = Command::new(maketfa).status()?;
         if !status.success() {
             eprintln!("maketfa.sh failed with status {}", status);
@@ -152,10 +133,6 @@ impl Context {
         Ok(())
     }
 
-    fn example_path(&self, args: &[String]) -> Result<PathBuf> {
-        Ok(self.examples.join(self.example_name(args)?))
-    }
-
     fn example_name<'a>(&self, args: &'a [String]) -> Result<&'a str> {
         args.first()
             .map(String::as_str)
@@ -163,7 +140,7 @@ impl Context {
     }
 
     fn example_output_dir(&self, name: &str) -> PathBuf {
-        self.fvp.join("output").join(name)
+        self.common.join("output").join(name)
     }
 
     fn fip_path(&self, name: &str) -> PathBuf {

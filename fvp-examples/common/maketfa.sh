@@ -3,7 +3,7 @@ set -euo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
-: "${CHERI_HOME:=$HOME/cheri}"
+: "${CRABILITY_BIN:=$HOME/.crability/bin}"
 
 make_flags=(
     -j"$(nproc)"
@@ -16,9 +16,9 @@ make_flags=(
     MBEDTLS_DIR="$DIR/mbedtls"
     ROT_KEY="$DIR/trusted-firmware-a/plat/arm/board/common/rotpk/arm_rotprivk_rsa.pem"
     TRUSTED_BOARD_BOOT=1
-    CC="$CHERI_HOME/output/morello-sdk/bin/clang"
-    LD="$CHERI_HOME/output/morello-sdk/bin/ld.lld"
-    CROSS_COMPILE="$CHERI_HOME/output/morello-sdk/bin/llvm-"
+    CC="$CRABILITY_BIN/clang"
+    LD="$CRABILITY_BIN/ld.lld"
+    CROSS_COMPILE="$CRABILITY_BIN/llvm-"
     TARGET_PLATFORM=fvp
     ENABLE_MORELLO_CAP=1
 )

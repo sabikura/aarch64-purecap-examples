@@ -19,24 +19,6 @@ fn main() -> ! {
     loop {}
 }
 
-// /// Write a slice of bytes to the PL011 UART
-// fn write_str(data: &[u8]) {
-//     const UART_PL011_DATA_REGISTER: usize = 0x2A40_0000;
-//
-//     let ddc: *mut u32 = cheri::ptr::default_data_mut();
-//     let uart_dr = ddc
-//         .with_addr(UART_PL011_DATA_REGISTER)
-//         .with_perms_clear_except(Perms::LOAD | Perms::STORE)
-//         .with_bounds(4);
-//
-//     for byte in data {
-//         // SAFETY: The ptr to the UART PL011 data register is valid for writes and properly aligned
-//         unsafe {
-//             core::ptr::write_volatile(uart_dr, *byte as u32);
-//         }
-//     }
-// }
-
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
     loop {}

@@ -1,9 +1,11 @@
 #![no_std]
 #![no_main]
-#![feature(strict_provenance)]
+
+use core::ptr::NonNull;
 
 use aarch64_purecap_rt::entry;
-use cheri::{prelude::*, ptr::Perms};
+use pl011_uart::registers::Pl011Registers;
+use pl011_uart::Pl011Uart;
 
 #[link_section = ".el2_entry"]
 #[used]
@@ -11,9 +13,13 @@ use cheri::{prelude::*, ptr::Perms};
 pub static EL2_ENTRY_BIN: [u8; include_bytes!(env!("EL2_ENTRY_BIN")).len()] =
     *include_bytes!(env!("EL2_ENTRY_BIN"));
 
-#[entry]
-fn main() -> ! {
-    let mut uart = unsafe { pl011_uart::Pl011Uart::from_address(0x2A40_0000) }.unwrap();
+#[entry(grant(
+    uart: Mmio<0x2A40_0000, Pl011Registers>,
+))]
+fn main(grant: Grant) -> ! {
+    // SAFETY: the granted capability points to the AP UART register block of the
+    // Morello FVP
+    let mut uart = unsafe { Pl011Uart::new(NonNull::new(grant.uart).unwrap()) }.unwrap();
     uart.write_bytes(b"Hello, world!\r\n");
 
     loop {}

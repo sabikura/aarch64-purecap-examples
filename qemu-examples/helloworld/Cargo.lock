@@ -5,15 +5,16 @@ version = 3
 [[package]]
 name = "aarch64-purecap-rt"
 version = "0.1.0"
-source = "git+https://github.com/sabikura/aarch64-purecap.git#1a7ce84027191d9c8f638c4fa8004ba91a89e8c9"
+source = "git+https://github.com/sabikura/aarch64-purecap.git#6f06e6a6e78c19d89f1c4c68506d36e62977fcfe"
 dependencies = [
  "aarch64-purecap-rt-macros",
+ "cheri",
 ]
 
 [[package]]
 name = "aarch64-purecap-rt-macros"
 version = "0.1.0"
-source = "git+https://github.com/sabikura/aarch64-purecap.git#1a7ce84027191d9c8f638c4fa8004ba91a89e8c9"
+source = "git+https://github.com/sabikura/aarch64-purecap.git#6f06e6a6e78c19d89f1c4c68506d36e62977fcfe"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -23,7 +24,26 @@ dependencies = [
 [[package]]
 name = "cheri"
 version = "0.1.0"
-source = "git+https://github.com/sabikura/cheri-rs.git#03dd7030fcf6347301ab798c5394a9892c9f5320"
+source = "git+https://github.com/sabikura/cheri-rs.git#a95c83f1bbad6bb880c49f6051883168087e4d98"
+dependencies = [
+ "cheri-macros",
+]
+
+[[package]]
+name = "cheri-macros"
+version = "0.1.0"
+source = "git+https://github.com/sabikura/cheri-rs.git#a95c83f1bbad6bb880c49f6051883168087e4d98"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "critical-section"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "790eea4361631c5e7d22598ecd5723ff611904e3344ce8720784c93e3d83d40b"
 
 [[package]]
 name = "helloworld-morello-qemu"
@@ -37,9 +57,9 @@ dependencies = [
 [[package]]
 name = "pl011-uart"
 version = "0.1.0"
-source = "git+https://github.com/sabikura/pl011-uart.git#bb59424eb545cf098c59c358983d6f1f45b3a6e7"
+source = "git+https://github.com/sabikura/pl011-uart.git#f9a6f972673cf9a233bb2a571e0aaf2979217856"
 dependencies = [
- "cheri",
+ "critical-section",
  "tock-registers",
 ]
 

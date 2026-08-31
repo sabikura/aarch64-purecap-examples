@@ -1,0 +1,8 @@
+[package]
+name = "alloc-morello-qemu"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aarch64-purecap-rt = { git = "https://github.com/sabikura/aarch64-purecap.git", package = "aarch64-purecap-rt", features = [ "hybrid", "bump-alloc" ] }
+pl011-uart = { git = "https://github.com/sabikura/pl011-uart.git" }
